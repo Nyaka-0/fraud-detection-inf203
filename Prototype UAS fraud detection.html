@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Testing - Sistem Deteksi Transaksi Keuangan Mencurigakan</title>
+    <style>
+        /* Desain minimal dan polos tanpa warna latar belakang */
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            color: #000000;
+            background-color: #ffffff;
+            margin: 20px auto;
+            max-width: 1050px;
+            padding: 0 15px;
+        }
+        h1, h2 {
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid #000000;
+            padding-bottom: 4px;
+        }
+        h1 {
+            font-size: 18px;
+        }
+        p, ul, ol {
+            margin: 6px 0;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 15px;
+        }
+        th, td {
+            border: 1px solid #000000;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 13px;
+        }
+        th {
+            font-weight: bold;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+        input, select {
+            font-family: inherit;
+            font-size: 13px;
+            padding: 5px;
+            border: 1px solid #000000;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        button {
+            font-family: inherit;
+            font-size: 13px;
+            padding: 6px 12px;
+            border: 1px solid #000000;
+            background-color: #ffffff;
+            color: #000000;
+            cursor: pointer;
+            margin-right: 6px;
+            margin-top: 4px;
+        }
+        button:active {
+            outline: 2px solid #000000;
+        }
+        .box {
+            border: 1px solid #000000;
+            padding: 10px;
+            margin-top: 10px;
+        }
+        pre {
+            border: 1px solid #000000;
+            padding: 10px;
+            overflow-x: auto;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 12px;
+            background-color: #ffffff;
+            color: #000000;
+        }
+        .inline-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. IDENTITAS MAHASISWA & PROJECT CARD -->
+    <div class="section">
+        <h1>Sistem Deteksi Transaksi Keuangan Mencurigakan (Fraud Detection)</h1>
+        <p>Mata Kuliah: INF203 - Desain dan Analisis Algoritma</p>
+        <p>Nama Mahasiswa :</p>
+        <ol>
+            <li>Rafli Aurelio (2025071027)</li>
+            <li>Nayaka Fiqih Maheswara Pramulia (2025071039)</li>
+        </ol>
+
+        <h2>PROJECT CARD &amp; FIRST EVIDENCE</h2>
+        <table>
+            <tbody>
+                <tr>
+                    <th style="width: 24%;">Project Name</th>
+                    <td>Sistem Deteksi Transaksi Keuangan Mencurigakan</td>
+                </tr>
+                <tr>
+                    <th>Context</th>
+                    <td>Bank/fintech perlu mendeteksi transaksi yang berpotensi fraud dari ribuan transaksi nasabah setiap hari secara cepat dan otomatis.</td>
+                </tr>
+                <tr>
+                    <th>Problem Statement</th>
+                    <td>Bagaimana mengidentifikasi transaksi yang menyimpang dari pola normal (anomali) sehingga dapat ditandai sebagai indikasi fraud sebelum diproses lebih lanjut?</td>
+                </tr>
+                <tr>
+                    <th>Data Fields</th>
+                    <td>1. ID Transaksi | 2. Jumlah Transaksi (nominal) | 3. Waktu Transaksi | 4. Lokasi/IP Transaksi | 5. Frekuensi Transaksi per Akun</td>
+                </tr>
+                <tr>
+                    <th>First Feature</th>
+                    <td>Search by: ID Transaksi</td>
+                </tr>
+                <tr>
+                    <th>Algoritma Terpilih (UAS)</th>
+                    <td>
+                        1. Hash Map (Indeks ID Transaksi &amp; Riwayat Lokasi) - pencarian rata-rata O(1)<br>
+                        2. Rule-Based Weighted Scoring + Validasi Input/Boundary - evaluasi anomali O(1) per transaksi<br>
+                        3. Merge Sort - pengurutan antrean prioritas berdasarkan skor anomali (menurun) O(n log n)
+                    </td>
+                </tr>
+                <tr>
+                    <th>Aturan &amp; Bobot Skor</th>
+                    <td>
+                        1. Nominal &gt; Rp50.000.000 (+40 skor)<br>
+                        2. Waktu di luar jam wajar 06:00 - 22:00 (+25 skor)<br>
+                        3. Lokasi berbeda dari riwayat lokasi sebelumnya (+30 skor)<br>
+                        4. Frekuensi transaksi &gt; 3x dalam sehari (+25 skor) (maksimal skor 100)
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 2. FITUR 1: SEARCH BY ID TRANSAKSI (HASH MAP O(1)) -->
+    <div class="section">
+        <h2>Fitur 1: Search by ID Transaksi (Hash Map Lookup)</h2>
+        <div class="inline-controls">
+            <label for="searchIdInput">Cari ID Transaksi:</label>
+            <input type="text" id="searchIdInput" placeholder="Contoh: T001, T002, B001..." oninput="filterTabel()">
+            <button type="button" onclick="filterTabel()">Cari</button>
+            <button type="button" onclick="resetPencarian()">Reset Pencarian</button>
+        </div>
+        <div id="searchResultBox" class="box" style="display: none;"></div>
+    </div>
+
+    <!-- 3. FITUR 2: FORM UJI MANUAL TRANSAKSI BARU -->
+    <div class="section">
+        <h2>Fitur 2: Uji Manual Transaksi Baru &amp; Trace Langkah Kerja</h2>
+        <form id="formTransaksi" onsubmit="tambahDanUjiTransaksi(event)">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="inputId">ID Transaksi:</label>
+                    <input type="text" id="inputId" value="T006">
+                </div>
+                <div class="form-group">
+                    <label for="inputJumlah">Jumlah Transaksi (Rp):</label>
+                    <input type="number" id="inputJumlah" value="60000000" step="any">
+                </div>
+                <div class="form-group">
+                    <label for="inputWaktu">Waktu Transaksi:</label>
+                    <input type="datetime-local" id="inputWaktu" value="2026-09-14T23:30">
+                </div>
+                <div class="form-group">
+                    <label for="inputLokasi">Lokasi Transaksi Saat Ini:</label>
+                    <input type="text" id="inputLokasi" value="Jakarta">
+                </div>
+                <div class="form-group">
+                    <label for="inputRiwayat">Riwayat Lokasi Sebelumnya (opsional):</label>
+                    <input type="text" id="inputRiwayat" value="Jakarta" placeholder="Kosongkan jika akun baru">
+                </div>
+                <div class="form-group">
+                    <label for="inputFrekuensi">Frekuensi Transaksi Hari Ini:</label>
+                    <input type="number" id="inputFrekuensi" value="1" step="1">
+                </div>
+                <div class="form-group">
+                    <label for="inputEkspektasi">Ekspektasi Status:</label>
+                    <select id="inputEkspektasi">
+                        <option value="Normal">Normal</option>
+                        <option value="Mencurigakan (Fraud Alert)" selected>Mencurigakan (Fraud Alert)</option>
+                        <option value="Input Tidak Valid">Input Tidak Valid</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit">Jalankan Deteksi &amp; Tambahkan ke Tabel</button>
+        </form>
+        <div id="manualEvalOutput" class="box" style="display: none;"></div>
+        <div id="traceOutput" class="box" style="display: none;"></div>
+    </div>
+
+    <!-- 4. FITUR 3: TABEL HASIL PENGUJIAN (DEFAULT, BOUNDARY, INVALID & MERGE SORT) -->
+    <div class="section">
+        <h2>Fitur 3: Tabel Hasil Pengujian (Test Cases)</h2>
+        <div>
+            <button type="button" onclick="renderTabel()">Jalankan Semua Test Case</button>
+            <button type="button" onclick="muatSkenarioBoundaryDanInvalid()">Muat Uji Boundary &amp; Invalid Input</button>
+            <button type="button" onclick="urutkanDenganMergeSort()">Urutkan Skor Tertinggi (Merge Sort)</button>
+            <button type="button" onclick="resetDataDefault()">Reset Data Default (T001 - T005)</button>
+        </div>
+        <p id="ringkasanTest" style="margin-top: 8px;"></p>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nominal</th>
+                        <th>Waktu</th>
+                        <th>Lokasi (Riwayat)</th>
+                        <th>Frekuensi</th>
+                        <th>Skor Anomali</th>
+                        <th>Hasil Program</th>
+                        <th>Ekspektasi</th>
+                        <th>Status Test</th>
+                        <th>Alasan / Catatan</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 5. FITUR 4: ANALISIS KOMPLEKSITAS & REFERENSI KODE PYTHON ASLI -->
+    <div class="section">
+        <h2>Fitur 4: Kompleksitas Algoritma &amp; Referensi Kode Python Asli</h2>
+        <div class="box">
+            <strong>Ringkasan Kompleksitas:</strong><br>
+            1. Hash Map (indeks ID transaksi &amp; riwayat lokasi): Waktu rata-rata O(1), terburuk O(n) saat banyak collision; Ruang O(n).<br>
+            2. Rule-Based Weighted Scoring &amp; Validasi: Waktu O(1) per transaksi; Ruang O(1) tambahan.<br>
+            3. Merge Sort (pengurutan prioritas berdasarkan skor anomali menurun): Waktu O(n log n) pada semua kasus (best, average, worst) dan stabil; Ruang O(n).
+        </div>
+        <details style="margin-top: 10px;">
+            <summary style="cursor: pointer; padding: 4px 0;">Klik untuk melihat / menyembunyikan kode Python asli</summary>
+<pre>"""
+Sistem Deteksi Transaksi Keuangan Mencurigakan (Fraud Detection)
+INF203 - Desain dan Analisis Algoritma
+"""
+
+from datetime import datetime, time
+
+BATAS_NOMINAL = 50_000_000       # transaksi di atas ini dianggap besar
+JAM_MULAI_WAJAR = time(6, 0)     # jam wajar transaksi: 06:00
+JAM_SELESAI_WAJAR = time(22, 0)  # sampai 22:00
+BATAS_FREKUENSI = 3              # lebih dari 3x transaksi/hari dianggap mencurigakan
+
+def deteksi_fraud(transaksi, riwayat_lokasi=None, jumlah_transaksi_hari_ini=0):
+    alasan = []
+
+    # Aturan 1: nominal besar
+    if transaksi["jumlah"] &gt; BATAS_NOMINAL:
+        alasan.append(f"Nominal melebihi batas wajar (&gt; Rp{BATAS_NOMINAL:,})")
+
+    # Aturan 2: waktu transaksi tidak wajar
+    jam_transaksi = transaksi["waktu"].time()
+    if not (JAM_MULAI_WAJAR &lt;= jam_transaksi &lt;= JAM_SELESAI_WAJAR):
+        alasan.append("Waktu transaksi di luar jam wajar (di luar 06:00-22:00)")
+
+    # Aturan 3: lokasi berbeda drastis dari riwayat
+    if riwayat_lokasi and transaksi["lokasi"] != riwayat_lokasi:
+        alasan.append(f"Lokasi berbeda dari riwayat ({riwayat_lokasi} -&gt; {transaksi['lokasi']})")
+
+    # Aturan 4: frekuensi transaksi tinggi
+    if jumlah_transaksi_hari_ini &gt; BATAS_FREKUENSI:
+        alasan.append(f"Frekuensi transaksi tinggi ({jumlah_transaksi_hari_ini}x hari ini)")
+
+    status = "Mencurigakan (Fraud Alert)" if alasan else "Normal"
+
+    return {
+        "id": transaksi["id"],
+        "status": status,
+        "alasan": alasan if alasan else ["Tidak ada indikasi mencurigakan"]
+    }</pre>
+        </details>
+    </div>
+
+    <script>
+        // =========================================================
+        // 1. PARAMETER DETEKSI (SESUAI KODE PYTHON)
+        // =========================================================
+        const BATAS_NOMINAL = 50000000;
+        const JAM_MULAI_MENIT = 6 * 60;      // 06:00 -> 360 menit
+        const JAM_SELESAI_MENIT = 22 * 60;   // 22:00 -> 1320 menit
+        const BATAS_FREKUENSI = 3;
+
+        // =========================================================
+        // 2. ALGORITMA 1: HASH MAP (INDEKS ID & RIWAYAT LOKASI)
+        // =========================================================
+        function bangunIndeksHashMap(testCases) {
+            const indexById = new Map();
+            const historyByLokasi = new Map();
+
+            testCases.forEach((item) => {
+                const keyId = (item.transaksi.id || "").trim().toLowerCase();
+                if (keyId !== "") {
+                    indexById.set(keyId, item);
+                }
+                const loc = (item.riwayat_lokasi || "").trim();
+                if (loc !== "") {
+                    const keyLoc = loc.toLowerCase();
+                    historyByLokasi.set(keyLoc, (historyByLokasi.get(keyLoc) || 0) + 1);
+                }
+            });
+
+            return { indexById, historyByLokasi };
+        }
+
+        // =========================================================
+        // 3. ALGORITMA 2: VALIDASI INPUT & WEIGHTED SCORING + TRACE
+        // =========================================================
+        function deteksiFraudDenganTrace(transaksi, riwayatLokasi, jumlahTransaksiHariIni) {
+            const trace = [];
+            const alasan = [];
+            let skor = 0;
+
+            // Validasi input (edge case & input tidak valid)
+            const idBersih = (transaksi.id || "").trim();
+            const lokasiBersih = (transaksi.lokasi || "").trim();
+            const waktuObj = new Date(transaksi.waktu);
+            const waktuValid = typeof transaksi.waktu === "string" && transaksi.waktu.trim() !== "" && !Number.isNaN(waktuObj.getTime());
+            const jumlahValid = typeof transaksi.jumlah === "number" && Number.isFinite(transaksi.jumlah) && transaksi.jumlah > 0;
+            const frekuensiValid = Number.isInteger(jumlahTransaksiHariIni) && jumlahTransaksiHariIni >= 0;
+
+            trace.push(`Langkah 0 (Validasi Input): ID="${idBersih || "(kosong)"}", Jumlah=${transaksi.jumlah}, WaktuValid=${waktuValid}, Lokasi="${lokasiBersih || "(kosong)"}", Frekuensi=${jumlahTransaksiHariIni}`);
+
+            if (!idBersih || !jumlahValid || !waktuValid || !lokasiBersih || !frekuensiValid) {
+                const masalah = [];
+                if (!idBersih) masalah.push("ID transaksi kosong");
+                if (!jumlahValid) masalah.push("Jumlah transaksi harus lebih dari 0 dan valid");
+                if (!waktuValid) masalah.push("Waktu transaksi tidak valid");
+                if (!lokasiBersih) masalah.push("Lokasi transaksi kosong");
+                if (!frekuensiValid) masalah.push("Frekuensi harus bilangan bulat >= 0");
+
+                trace.push(`Keputusan: Input ditolak karena tidak valid -> ${masalah.join("; ")}`);
+                return {
+                    id: idBersih || "-",
+                    status: "Input Tidak Valid",
+                    skor: 0,
+                    alasan: masalah,
+                    trace
+                };
+            }
+
+            // Aturan 1: Nominal besar (> 50.000.000)
+            if (transaksi.jumlah > BATAS_NOMINAL) {
+                alasan.push(`Nominal melebihi batas wajar (> Rp${BATAS_NOMINAL.toLocaleString("id-ID")})`);
+                skor += 40;
+                trace.push(`Aturan 1 (Nominal): ${transaksi.jumlah} > ${BATAS_NOMINAL} (YA) -> skor +40 (total: ${skor})`);
+            } else {
+                trace.push(`Aturan 1 (Nominal): ${transaksi.jumlah} > ${BATAS_NOMINAL} (TIDAK / batas wajar) -> skor tetap ${skor}`);
+            }
+
+            // Aturan 2: Waktu transaksi tidak wajar (di luar 06:00 - 22:00)
+            const totalMenit = waktuObj.getHours() * 60 + waktuObj.getMinutes();
+            const dalamJamWajar = JAM_MULAI_MENIT <= totalMenit && totalMenit <= JAM_SELESAI_MENIT;
+            if (!dalamJamWajar) {
+                alasan.push("Waktu transaksi di luar jam wajar (di luar 06:00-22:00)");
+                skor += 25;
+                trace.push(`Aturan 2 (Waktu): menit ke-${totalMenit} di luar [360..1320] (YA) -> skor +25 (total: ${skor})`);
+            } else {
+                trace.push(`Aturan 2 (Waktu): menit ke-${totalMenit} di dalam [360..1320] (TIDAK / jam wajar) -> skor tetap ${skor}`);
+            }
+
+            // Aturan 3: Lokasi berbeda dari riwayat
+            const riwayatBersih = (riwayatLokasi || "").trim();
+            if (riwayatBersih !== "" && lokasiBersih.toLowerCase() !== riwayatBersih.toLowerCase()) {
+                alasan.push(`Lokasi berbeda dari riwayat (${riwayatBersih} -> ${lokasiBersih})`);
+                skor += 30;
+                trace.push(`Aturan 3 (Lokasi): "${lokasiBersih}" != "${riwayatBersih}" (YA) -> skor +30 (total: ${skor})`);
+            } else {
+                trace.push(`Aturan 3 (Lokasi): riwayat="${riwayatBersih || "-"}" vs lokasi="${lokasiBersih}" (TIDAK) -> skor tetap ${skor}`);
+            }
+
+            // Aturan 4: Frekuensi transaksi tinggi (> 3x/hari)
+            if (jumlahTransaksiHariIni > BATAS_FREKUENSI) {
+                alasan.push(`Frekuensi transaksi tinggi (${jumlahTransaksiHariIni}x hari ini)`);
+                skor += 25;
+                trace.push(`Aturan 4 (Frekuensi): ${jumlahTransaksiHariIni} > ${BATAS_FREKUENSI} (YA) -> skor +25 (total sementara: ${skor})`);
+            } else {
+                trace.push(`Aturan 4 (Frekuensi): ${jumlahTransaksiHariIni} > ${BATAS_FREKUENSI} (TIDAK) -> skor tetap ${skor}`);
+            }
+
+            const status = alasan.length > 0 ? "Mencurigakan (Fraud Alert)" : "Normal";
+            const skorAkhir = Math.min(100, skor);
+            trace.push(`Keputusan Akhir: Status="${status}", Skor Anomali=${skorAkhir}/100 (dibatasi maks 100)`);
+
+            return {
+                id: idBersih,
+                status,
+                skor: skorAkhir,
+                alasan: alasan.length > 0 ? alasan : ["Tidak ada indikasi mencurigakan"],
+                trace
+            };
+        }
+
+        // =========================================================
+        // 4. ALGORITMA 3: MERGE SORT (URUTAN SKOR ANOMALI MENURUN)
+        // =========================================================
+        function mergeSortBySkorDesc(arr) {
+            if (arr.length <= 1) {
+                return arr.slice();
+            }
+            const mid = Math.floor(arr.length / 2);
+            const left = mergeSortBySkorDesc(arr.slice(0, mid));
+            const right = mergeSortBySkorDesc(arr.slice(mid));
+            return mergeDesc(left, right);
+        }
+
+        function mergeDesc(left, right) {
+            const hasil = [];
+            let i = 0;
+            let j = 0;
+
+            while (i < left.length && j < right.length) {
+                const skorLeft = deteksiFraudDenganTrace(left[i].transaksi, left[i].riwayat_lokasi, left[i].jumlah_transaksi_hari_ini).skor;
+                const skorRight = deteksiFraudDenganTrace(right[j].transaksi, right[j].riwayat_lokasi, right[j].jumlah_transaksi_hari_ini).skor;
+
+                // >= menjaga stabilitas urutan relatif elemen dengan skor sama
+                if (skorLeft >= skorRight) {
+                    hasil.push(left[i]);
+                    i++;
+                } else {
+                    hasil.push(right[j]);
+                    j++;
+                }
+            }
+
+            while (i < left.length) {
+                hasil.push(left[i]);
+                i++;
+            }
+            while (j < right.length) {
+                hasil.push(right[j]);
+                j++;
+            }
+
+            return hasil;
+        }
+
+        // =========================================================
+        // 5. DATA UJI DEFAULT & BOUNDARY / INVALID
+        // =========================================================
+        function getDefaultTestCases() {
+            return [
+                {
+                    transaksi: { id: "T001", jumlah: 500000, waktu: "2026-09-14T10:30", lokasi: "Jakarta" },
+                    riwayat_lokasi: "Jakarta",
+                    jumlah_transaksi_hari_ini: 1,
+                    ekspektasi: "Normal"
+                },
+                {
+                    transaksi: { id: "T002", jumlah: 75000000, waktu: "2026-09-14T13:00", lokasi: "Jakarta" },
+                    riwayat_lokasi: "Jakarta",
+                    jumlah_transaksi_hari_ini: 1,
+                    ekspektasi: "Mencurigakan (Fraud Alert)"
+                },
+                {
+                    transaksi: { id: "T003", jumlah: 1000000, waktu: "2026-09-14T02:15", lokasi: "Jakarta" },
+                    riwayat_lokasi: "Jakarta",
+                    jumlah_transaksi_hari_ini: 1,
+                    ekspektasi: "Mencurigakan (Fraud Alert)"
+                },
+                {
+                    transaksi: { id: "T004", jumlah: 2000000, waktu: "2026-09-14T09:00", lokasi: "Singapura" },
+                    riwayat_lokasi: "Jakarta",
+                    jumlah_transaksi_hari_ini: 1,
+                    ekspektasi: "Mencurigakan (Fraud Alert)"
+                },
+                {
+                    transaksi: { id: "T005", jumlah: 300000, waktu: "2026-09-14T15:00", lokasi: "Jakarta" },
+                    riwayat_lokasi: "Jakarta",
+                    jumlah_transaksi_hari_ini: 5,
+                    ekspektasi: "Mencurigakan (Fraud Alert)"
+                }
+            ];
+        }
+
+        function getBoundaryAndInvalidCases() {
+            return [
+                ...getDefaultTestCases(),
+                {
+                    transaksi: { id: "B001", jumlah: 50000000, waktu: "2026-09-14T06:00", lokasi: "Jakarta" },
+                    riwayat_lokasi: "Jakarta",
+                    jumlah_transaksi_hari_ini: 3,
+                    ekspektasi: "Normal"
+                },
+                {
+                    transaksi: { id: "B002", jumlah: 50000000, waktu: "2026-09-14T22:00", lokasi: "Jakarta" },
+                    riwayat_lokasi: "Jakarta",
+                    jumlah_transaksi_hari_ini: 3,
+                    ekspektasi: "Normal"
+                },
+                {
+                    transaksi: { id: "B003", jumlah: 50000001, waktu: "2026-09-14T22:01", lokasi: "Bandung" },
+                    riwayat_lokasi: "Jakarta",
+                    jumlah_transaksi_hari_ini: 4,
+                    ekspektasi: "Mencurigakan (Fraud Alert)"
+                },
+                {
+                    transaksi: { id: "INV01", jumlah: -100000, waktu: "2026-09-14T12:00", lokasi: "Jakarta" },
+                    riwayat_lokasi: "Jakarta",
+                    jumlah_transaksi_hari_ini: 1,
+                    ekspektasi: "Input Tidak Valid"
+                },
+                {
+                    transaksi: { id: "INV02", jumlah: 250000, waktu: "", lokasi: "Jakarta" },
+                    riwayat_lokasi: "Jakarta",
+                    jumlah_transaksi_hari_ini: -2,
+                    ekspektasi: "Input Tidak Valid"
+                }
+            ];
+        }
+
+        let daftarTestCases = getDefaultTestCases();
+
+        function formatWaktu(isoStr) {
+            if (!isoStr) return "(kosong)";
+            return isoStr.replace("T", " ");
+        }
+
+        // =========================================================
+        // 6. RENDER TABEL, PENCARIAN HASH MAP & TRACE
+        // =========================================================
+        function renderTabel(filterKeyword = "") {
+            const tbody = document.getElementById("tabelBody");
+            const searchBox = document.getElementById("searchResultBox");
+            tbody.innerHTML = "";
+
+            const { indexById } = bangunIndeksHashMap(daftarTestCases);
+            const keyword = filterKeyword.trim().toLowerCase();
+            let jumlahCocok = 0;
+            let totalTampil = 0;
+
+            daftarTestCases.forEach((item) => {
+                const hasil = deteksiFraudDenganTrace(item.transaksi, item.riwayat_lokasi, item.jumlah_transaksi_hari_ini);
+                const cocokEkspektasi = hasil.status === item.ekspektasi;
+                const statusTest = cocokEkspektasi ? "Found ✅" : "Not Found ❌";
+
+                if (cocokEkspektasi) jumlahCocok++;
+
+                if (keyword !== "" && !item.transaksi.id.toLowerCase().includes(keyword)) {
+                    return;
+                }
+
+                totalTampil++;
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${item.transaksi.id || "-"}</td>
+                    <td>${typeof item.transaksi.jumlah === "number" ? "Rp" + item.transaksi.jumlah.toLocaleString("id-ID") : "-"}</td>
+                    <td>${formatWaktu(item.transaksi.waktu)}</td>
+                    <td>${item.transaksi.lokasi || "-"} (${item.riwayat_lokasi || "-"})</td>
+                    <td>${item.jumlah_transaksi_hari_ini}x</td>
+                    <td>${hasil.skor} / 100</td>
+                    <td>${hasil.status}</td>
+                    <td>${item.ekspektasi}</td>
+                    <td>${statusTest}</td>
+                    <td>${hasil.alasan.join("; ")}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (totalTampil === 0) {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td colspan="10" style="text-align: center;">Data transaksi dengan ID "${filterKeyword}" tidak ditemukan.</td>`;
+                tbody.appendChild(tr);
+            }
+
+            if (keyword !== "") {
+                searchBox.style.display = "block";
+                const exactItem = indexById.get(keyword);
+                if (exactItem) {
+                    const exactHasil = deteksiFraudDenganTrace(exactItem.transaksi, exactItem.riwayat_lokasi, exactItem.jumlah_transaksi_hari_ini);
+                    const cocok = exactHasil.status === exactItem.ekspektasi;
+                    searchBox.innerHTML = `
+                        <strong>Hasil Hash Map Lookup ID "${exactItem.transaksi.id}":</strong><br>
+                        Nominal: Rp${exactItem.transaksi.jumlah.toLocaleString("id-ID")} |
+                        Waktu: ${formatWaktu(exactItem.transaksi.waktu)} |
+                        Lokasi: ${exactItem.transaksi.lokasi} (Riwayat: ${exactItem.riwayat_lokasi || "-"}) |
+                        Frekuensi: ${exactItem.jumlah_transaksi_hari_ini}x<br>
+                        Hasil Program: <strong>${exactHasil.status}</strong> (Skor Anomali: ${exactHasil.skor} / 100) |
+                        Status Test: ${cocok ? "Found ✅" : "Not Found ❌"}<br>
+                        Alasan: ${exactHasil.alasan.join("; ")}
+                    `;
+                } else {
+                    searchBox.innerHTML = `Menampilkan ${totalTampil} transaksi yang cocok dengan kata kunci ID "${filterKeyword}".`;
+                }
+            } else {
+                searchBox.style.display = "none";
+            }
+
+            document.getElementById("ringkasanTest").textContent =
+                `Total Test Case: ${daftarTestCases.length} | Sesuai Ekspektasi: ${jumlahCocok} / ${daftarTestCases.length}`;
+        }
+
+        function filterTabel() {
+            const keyword = document.getElementById("searchIdInput").value;
+            renderTabel(keyword);
+        }
+
+        function resetPencarian() {
+            document.getElementById("searchIdInput").value = "";
+            renderTabel("");
+        }
+
+        function muatSkenarioBoundaryDanInvalid() {
+            daftarTestCases = getBoundaryAndInvalidCases();
+            document.getElementById("manualEvalOutput").style.display = "none";
+            document.getElementById("traceOutput").style.display = "none";
+            resetPencarian();
+        }
+
+        function urutkanDenganMergeSort() {
+            daftarTestCases = mergeSortBySkorDesc(daftarTestCases);
+            renderTabel(document.getElementById("searchIdInput").value);
+        }
+
+        function tambahDanUjiTransaksi(event) {
+            event.preventDefault();
+
+            const id = document.getElementById("inputId").value.trim();
+            const jumlah = Number(document.getElementById("inputJumlah").value);
+            const waktu = document.getElementById("inputWaktu").value;
+            const lokasi = document.getElementById("inputLokasi").value.trim();
+            const riwayat = document.getElementById("inputRiwayat").value.trim();
+            const frekuensi = Number(document.getElementById("inputFrekuensi").value);
+            const ekspektasi = document.getElementById("inputEkspektasi").value;
+
+            const transaksiBaru = {
+                transaksi: { id, jumlah, waktu, lokasi },
+                riwayat_lokasi: riwayat || null,
+                jumlah_transaksi_hari_ini: frekuensi,
+                ekspektasi: ekspektasi
+            };
+
+            const indeksAda = daftarTestCases.findIndex(tc => (tc.transaksi.id || "").toLowerCase() === id.toLowerCase());
+            if (indeksAda !== -1) {
+                daftarTestCases[indeksAda] = transaksiBaru;
+            } else {
+                daftarTestCases.push(transaksiBaru);
+            }
+
+            const hasil = deteksiFraudDenganTrace(transaksiBaru.transaksi, transaksiBaru.riwayat_lokasi, transaksiBaru.jumlah_transaksi_hari_ini);
+            const cocok = hasil.status === ekspektasi;
+
+            const evalBox = document.getElementById("manualEvalOutput");
+            evalBox.style.display = "block";
+            evalBox.innerHTML = `
+                <strong>Hasil Evaluasi Transaksi ${hasil.id}:</strong><br>
+                Status Program: <strong>${hasil.status}</strong> (Skor Anomali: ${hasil.skor} / 100)<br>
+                Ekspektasi: ${ekspektasi} -> Status Test: ${cocok ? "Found ✅" : "Not Found ❌"}<br>
+                Alasan: ${hasil.alasan.join("; ")}
+            `;
+
+            const traceBox = document.getElementById("traceOutput");
+            traceBox.style.display = "block";
+            traceBox.innerHTML = `<strong>Trace Langkah Kerja Algoritma:</strong><br>${hasil.trace.join("<br>")}`;
+
+            const nomorBerikutnya = String(daftarTestCases.length + 1).padStart(3, "0");
+            document.getElementById("inputId").value = "T" + nomorBerikutnya;
+
+            renderTabel(document.getElementById("searchIdInput").value);
+        }
+
+        function resetDataDefault() {
+            daftarTestCases = getDefaultTestCases();
+            document.getElementById("manualEvalOutput").style.display = "none";
+            document.getElementById("traceOutput").style.display = "none";
+            document.getElementById("inputId").value = "T006";
+            resetPencarian();
+        }
+
+        window.onload = function () {
+            renderTabel();
+        };
+    </script>
+</body>
+</html>
